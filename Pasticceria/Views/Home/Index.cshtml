@@ -27,7 +27,7 @@
                 <tr>
                     <td>@articolo.Name</td>
                     <td>@articolo.Prezzo €</td>
-                    <td>Info</td>
+                    <td><button class="btn btn-outline-info info-button" data-cat="@articolo.Id" data-toggle="modal" data-target="#info-modal">Dettagli</button></td>
                     @if (SignInManager.IsSignedIn(User))
                     {
                         <td><button class="btn btn-outline-info add-ingredient-button" data-cat="@articolo.Id" data-toggle="modal" data-target="#add-ingredientedolce-modal">+</button><button class="btn btn-outline-info ml-1 remove-ingredient-button" data-toggle="modal" data-target="#remove-ingredientedolce-modal" data-cat="@articolo.Id">-</button></td>
@@ -122,8 +122,14 @@
                 </button>
             </div>
             <div class="modal-body">
-                <select class="form-control" type="text" id="value-input" name="Value" placeholder="" required>
+                <select class="form-control" type="text" id="add-ingredient-input" name="Ingrediente" placeholder="" required>
+                    @foreach (var item in Model.Ingredienti)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
                 </select>
+                <label for="add-quantity-input">Quantità</label>
+                <input name="Name" type="number" class="form-control mb-2" id="add-quantity-input" aria-describedby="add-quantity-input-help" placeholder="Immettere valore" required>
                 <button type="submit" class="btn btn-primary add-ingredient-submit">Aggiungi</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
             </div>
@@ -143,9 +149,33 @@
                 </button>
             </div>
             <div class="modal-body">
-                <select class="form-control" type="text" id="value-input" name="Value" placeholder="" required>
-                </select>
-                <button type="submit" class="btn btn-primary add-ingredient-submit">Rimuovi</button>
+                <select class="form-control" type="text" id="remove-ingredient-input" name="Ingrediente" placeholder="" required>
+                    @foreach (var item in Model.Ingredienti)
+                    {
+                        <option value="@item.Id">@item.Name</option>
+                    }
+                </select>                
+                <button type="submit" class="btn btn-primary remove-ingredient-submit">Rimuovi</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info IngredienteDolce Modal -->
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="remove-ingredientedolce-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-dolce-modal-label">Informazioni Articolo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="nome-articolo-label"></p>
+                <p id="data-creazione-label"></p>
+                <p id="ingredienti-label"></p>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
             </div>
         </div>
@@ -160,14 +190,69 @@
         });
         $('.remove-ingredient-button').on('click', function () {
             dolceId = $(this).attr('data-cat');
+            
         });
 
         $('.add-ingredient-submit').on('click', function () {
+            var ingredientId = $('#add-ingredient-input').val();
+            var quantity = $('#add-quantity-input').val();
+            var settings = {
+                "url": "Home/AssegnaIngrediente",
+                "method": "POST",
+                "async": false,
+                "timeout": 0,
+                'dataType': 'json',
+                'data': {
+                    'dolceId': dolceId,
+                    'ingredienteId': ingredientId,
+                    'quantity' : quantity
+                },
+                "error": function (error) {
+                    
+                }
+            };
 
+            $.ajax(settings).done(function (response) {
+                location.reload();
+                console.log(response);
+
+            }).then(function (response) {
+                
+            }).fail(function (error) {
+                respError = error;
+                console.log(error.responseText);
+            });
+            $('#remove-ingredientedolce-modal').modal('hide');
         });
 
         $('.remove-ingredient-submit').on('click', function () {
+            var ingredientId = $('#remove-ingredient-input').val();
+            var settings = {
+                "url": "Home/TogliIngrediente",
+                "method": "POST",
+                "async": false,
+                "timeout": 0,
+                'dataType': 'json',
+                'data': {
+                    'dolceId': dolceId,
+                    'ingredienteId': ingredientId
+                },
+                "error": function (error) {
+                    
+                }
+            };
 
+            $.ajax(settings).done(function (response) {
+                location.reload();
+                console.log(response);
+
+            }).then(function (response) {
+                
+            }).fail(function (error) {
+                respError = error;
+                console.log(error.responseText);
+            });
+            $('#remove-ingredientedolce-modal').modal('hide');
         });
 
         $('.ingredients-check').on('change', function () {
@@ -180,21 +265,16 @@
             }
         });
 
-        $('.add-ingredientedolce-modal').modal(function () {
+        $('.info-button').click(function () {
+            var respData;
+            dolceId = $(this).attr('data-cat');
             var settings = {
-                "url": "GetCommessaDetails/" + numeroCommessa,
+                "url": "GetDolceDetails/" + dolceId,
                 "method": "GET",
                 "async": false,
                 "timeout": 0,
                 'dataType': 'json',
-                "error": function (error) {
-                    respError = error;
-                    if (respError.responseText === "420") {
-                        console.log('Commessa Inesistente');
-                    }
-                    if (respError.responseText === "407") {
-                        console.log('Parametro nullo');
-                    }
+                "error": function (error) {                    
                 }
             };
 
@@ -203,51 +283,22 @@
                 console.log(response);
 
             }).then(function (response) {
-
             }).fail(function (error) {
                 respError = error;
                 console.log(error.responseText);
             });
-            var inizioProdEff = respData.statoProduzione === 0 ? "N.D." : respData.inizioProdEff;
-            var fineProdEff = respData.statoProduzione === 2 ? respData.fineProdEff : "N.D";
-            var statoProduzione = "Non iniziato";
-            switch (respData.statoProduzione) {
-                case 0:
-                    statoProduzione = "Non iniziato";
-                    break;
-                case 1:
-                    statoProduzione = "In produzione";
-                    break;
-                case 2:
-                    statoProduzione = "Produzione Finita";
-                    break;
-                case 3:
-                    statoProduzione = "Commessa chiusa";
-                    break;
+
+            $('#nome-articolo-label').text("Nome: "+respData.name);
+            $('#data-creazione-label').text("Prodotto il: "+respData.productionDate);
+            var ingrLabel = 'Ingredienti: ';
+            for (var i = 0; i < respData.ingredienti.length; i++) {
+                ingrLabel += respData.ingredienti[i].name + " (" + respData.ingredienti[i].quantity + " " + respData.ingredienti[i].value +"), ";
             }
-            $('#detailsModal').modal();
-            $('#NumeroCommessaDet').text(respData.numeroCommessa);
-            $('#Tiratura').text(respData.tiraturaPrev);
-            $('#CodiceArticolo').text(respData.idNomePr);
-            $('#Note').text(respData.note);
-            $('#DataConsegna').text(respData.dataConsegnaPrev);
-            $('#DataInizioProduzione').text(respData.inizioProdPrev);
-            $('#User').text(respData.utente);
-            $('#ScartoPrevisto').text(respData.scartoPrev);
-            $('#TotaleInlay').text(respData.totaleInlay);
-            $('#InizioLavorazione').text(inizioProdEff);
-            $('#FineLavorazione').text(fineProdEff);
-            $('#InlayScaricati').text(respData.inlayScaricati);
-            $('#TiraturaEffettiva').text(respData.tiraturaEff);
-            $('#ScartoEffettivo').text(respData.scarto);
-            $('#ScartoPerc').text(respData.scartoPerc);
-            $('#InlayImpegnati').text(respData.inlayImpegnati);
-            $('#StatoProduzione').text(statoProduzione);
-            var percentage = respData.avanzamentoCommessa + "%";
-            $('.progress-commessa').css('width', percentage);
-            $('.progress-commessa').css('aria-valuenow', respData.avanzamentoCommessa);
-            $('.commessa-progress-value').text(percentage);
+            $('#ingredienti-label').text(ingrLabel);
+            
 
         });
+
+        
     </script>
 }
