@@ -1,0 +1,253 @@
+﻿@model Pasticceria.Models.ViewModels.HomeViewModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center justify-content-center bg-white">
+    <h1 class="display-4 font-weight-bold">Lista dei notri dolci</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Prezzo</th>
+                <th>Info</th>
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <th>Modifica Ingredienti</th>
+                    <th>Data di Produzione</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var articolo in Model.Articoli)
+            {
+                <tr>
+                    <td>@articolo.Name</td>
+                    <td>@articolo.Prezzo €</td>
+                    <td>Info</td>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <td><button class="btn btn-outline-info add-ingredient-button" data-cat="@articolo.Id" data-toggle="modal" data-target="#add-ingredientedolce-modal">+</button><button class="btn btn-outline-info ml-1 remove-ingredient-button" data-toggle="modal" data-target="#remove-ingredientedolce-modal" data-cat="@articolo.Id">-</button></td>
+                        <td>@articolo.ProductionDate</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+</div>
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="container text-center">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#new-dolce-modal">Aggiungi Articolo</button>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#new-ingrediente-modal">Aggiungi Ingredienti</button>
+    </div>
+}
+
+<!-- New Dolce Modal -->
+<div class="modal fade" id="new-dolce-modal" tabindex="-1" role="dialog" aria-labelledby="new-dolce-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-dolce-modal-label">Aggiungi nuovo dolce</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="Home" asp-action="AggiungiArticolo">
+                    <div class="form-group">
+                        <label for="name-input">Nome Articolo</label>
+                        <input name="Name" type="text" class="form-control" id="name-input" aria-describedby="name-input-help" placeholder="Inserire nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price-input">Prezzo Unitario</label>
+                        <input name="UnitPrice" type="text" class="form-control" id="price-input" aria-describedby="name-input-help" placeholder="Inserire prezzo" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salva</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Ingrediente Modal -->
+<div class="modal fade" id="new-ingrediente-modal" tabindex="-1" role="dialog" aria-labelledby="new-ingrediente-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-dolce-modal-label">Aggiungi Ingrediente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form typeof="POST" asp-controller="Home" asp-action="AggiungiIngrediente">
+                    <div class="form-group">
+                        <label for="name-input">Nome Ingrediente</label>
+                        <input name="Name" type="text" class="form-control" id="name-input" aria-describedby="name-input-help" placeholder="Inserire nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value-input">Unità di Misura</label>
+                        <select class="form-control" type="text" id="value-input" name="Value" placeholder="" required>
+                            <option value="gr">gr</option>
+                            <option value="kg">kg</option>
+                            <option value="lt">lt</option>
+                            <option value="fl.oz">fl.oz</option>
+                            <option value="pz">pz</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salva</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add IngredienteDolce Modal -->
+<div class="modal fade" id="add-ingredientedolce-modal" tabindex="-1" role="dialog" aria-labelledby="add-ingredientedolce-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-dolce-modal-label">Assegna Ingrediente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select class="form-control" type="text" id="value-input" name="Value" placeholder="" required>
+                </select>
+                <button type="submit" class="btn btn-primary add-ingredient-submit">Aggiungi</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Remove IngredienteDolce Modal -->
+<div class="modal fade" id="remove-ingredientedolce-modal" tabindex="-1" role="dialog" aria-labelledby="remove-ingredientedolce-modal-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-dolce-modal-label">Togli Ingrediente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select class="form-control" type="text" id="value-input" name="Value" placeholder="" required>
+                </select>
+                <button type="submit" class="btn btn-primary add-ingredient-submit">Rimuovi</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var dolceId = "";
+        $('.add-ingredient-button').on('click', function () {
+            dolceId = $(this).attr('data-cat');
+        });
+        $('.remove-ingredient-button').on('click', function () {
+            dolceId = $(this).attr('data-cat');
+        });
+
+        $('.add-ingredient-submit').on('click', function () {
+
+        });
+
+        $('.remove-ingredient-submit').on('click', function () {
+
+        });
+
+        $('.ingredients-check').on('change', function () {
+            var inputName = '#' + $(this).attr('data-cat');
+            if ($(this).is('checked')) {
+                $(inputName).prop("disabled", false);
+            }
+            else {
+                $(inputName).prop("disabled", true);
+            }
+        });
+
+        $('.add-ingredientedolce-modal').modal(function () {
+            var settings = {
+                "url": "GetCommessaDetails/" + numeroCommessa,
+                "method": "GET",
+                "async": false,
+                "timeout": 0,
+                'dataType': 'json',
+                "error": function (error) {
+                    respError = error;
+                    if (respError.responseText === "420") {
+                        console.log('Commessa Inesistente');
+                    }
+                    if (respError.responseText === "407") {
+                        console.log('Parametro nullo');
+                    }
+                }
+            };
+
+            $.ajax(settings).done(function (response) {
+                respData = response;
+                console.log(response);
+
+            }).then(function (response) {
+
+            }).fail(function (error) {
+                respError = error;
+                console.log(error.responseText);
+            });
+            var inizioProdEff = respData.statoProduzione === 0 ? "N.D." : respData.inizioProdEff;
+            var fineProdEff = respData.statoProduzione === 2 ? respData.fineProdEff : "N.D";
+            var statoProduzione = "Non iniziato";
+            switch (respData.statoProduzione) {
+                case 0:
+                    statoProduzione = "Non iniziato";
+                    break;
+                case 1:
+                    statoProduzione = "In produzione";
+                    break;
+                case 2:
+                    statoProduzione = "Produzione Finita";
+                    break;
+                case 3:
+                    statoProduzione = "Commessa chiusa";
+                    break;
+            }
+            $('#detailsModal').modal();
+            $('#NumeroCommessaDet').text(respData.numeroCommessa);
+            $('#Tiratura').text(respData.tiraturaPrev);
+            $('#CodiceArticolo').text(respData.idNomePr);
+            $('#Note').text(respData.note);
+            $('#DataConsegna').text(respData.dataConsegnaPrev);
+            $('#DataInizioProduzione').text(respData.inizioProdPrev);
+            $('#User').text(respData.utente);
+            $('#ScartoPrevisto').text(respData.scartoPrev);
+            $('#TotaleInlay').text(respData.totaleInlay);
+            $('#InizioLavorazione').text(inizioProdEff);
+            $('#FineLavorazione').text(fineProdEff);
+            $('#InlayScaricati').text(respData.inlayScaricati);
+            $('#TiraturaEffettiva').text(respData.tiraturaEff);
+            $('#ScartoEffettivo').text(respData.scarto);
+            $('#ScartoPerc').text(respData.scartoPerc);
+            $('#InlayImpegnati').text(respData.inlayImpegnati);
+            $('#StatoProduzione').text(statoProduzione);
+            var percentage = respData.avanzamentoCommessa + "%";
+            $('.progress-commessa').css('width', percentage);
+            $('.progress-commessa').css('aria-valuenow', respData.avanzamentoCommessa);
+            $('.commessa-progress-value').text(percentage);
+
+        });
+    </script>
+}
